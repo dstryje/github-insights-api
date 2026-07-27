@@ -1,11 +1,14 @@
-# Branch GitHub API
-A Spring Boot REST API that retrieves public GitHub user profile information along with associated repositories and returns a structured response based on the Branch engineering take-home assignment requirements.
+# GitHub Insights API
+
+A Spring Boot REST API that retrieves public GitHub user profile information and associated repositories and returns a consolidated, structured response.
+
+This project demonstrates practical enterprise Java development with an emphasis on clean architecture, separation of concerns, external API integration, automated testing, and maintainability.
 
 ---
 
 ## Overview
 
-This service accepts a GitHub username, retrieves user profile information from the GitHub public API, retrieves the user's repositories, and returns a consolidated response in a clean JSON format.
+The service accepts a GitHub username, retrieves profile information from the GitHub public API, retrieves the user's repositories, and returns the information through a simplified API contract.
 
 Example endpoint:
 
@@ -17,89 +20,92 @@ http://localhost:8080/api/v1/github/octocat
 
 ---
 
-## Architecture and Design Decisions
+## Architecture
 
-The application follows a layered architecture to separate responsibilities and keep the codebase maintainable and easy to test.
+The application uses a layered architecture to keep responsibilities separated and make the code easier to maintain and test.
 
-```text
-Controller → Service → Client → Mapper → DTO → Exception Handling
-```
+Controller → Service → Client → Mapper → DTO
+
+Cross-cutting concerns such as configuration and exception handling are kept separate from the primary application flow.
 
 ### Controller Layer
 
-Responsible only for handling incoming HTTP requests and returning responses.
+Handles incoming HTTP requests and delegates business operations to the service layer.
 
-```text
 GithubUserController
-```
+
+The controller is intentionally kept thin and does not contain external API or transformation logic.
 
 ### Service Layer
 
-Responsible for orchestration logic by coordinating API calls and delegating response transformation.
+Coordinates the application workflow, including retrieving GitHub profile and repository information and delegating response transformation.
 
-```text
 GithubUserService
-```
 
 ### Client Layer
 
-Responsible for communicating with the external GitHub API using Spring Boot RestClient.
+Provides an abstraction around communication with the external GitHub API.
 
-```text
-GithubClient
+GithubClient  
 GithubClientImpl
-```
 
-A dedicated RestClient configuration class centralizes GitHub API configuration and request headers.
+The implementation uses Spring's RestClient to communicate with GitHub.
 
-```text
+External API communication is isolated behind the client interface so that the rest of the application does not depend directly on GitHub's implementation details.
+
+### Configuration
+
+RestClient configuration is centralized in:
+
 RestClientConfig
-```
+
+This keeps external service configuration separate from business logic and provides a single location for configuring GitHub API communication.
 
 ### Mapper Layer
 
-Responsible for transforming GitHub API DTOs into the final API response contract.
+Transforms external GitHub DTOs into the application's public API response model.
 
-```text
 GithubMapper
-```
 
-This layer also handles formatting the GitHub account creation date into a more readable GMT format.
+Keeping transformation logic separate prevents the service and controller layers from becoming responsible for response formatting.
 
 ### DTO Separation
 
-Separate DTOs were created for:
+Separate DTOs are maintained for:
 
 - GitHub external API responses
-- Internal API response contract
+- Internal API response contracts
 
-This avoids coupling the API directly to GitHub’s response structure and improves maintainability.
+This prevents the public API from becoming tightly coupled to GitHub's response structure and allows either side to evolve independently.
 
 ### Exception Handling
 
-Custom exceptions were implemented to provide centralized and consistent error handling.
+Centralized exception handling provides consistent API error responses.
 
-```text
-GithubUserNotFoundException
-GithubApiException
-GlobalExceptionHandler
+Current exception components include:
+
+GithubUserNotFoundException  
+GithubApiException  
+GlobalExceptionHandler  
 ErrorResponse
-```
 
-Example error response:
+Example:
 
-```json
 {
-  "message": "User not found: invalid-user"
+"message": "User not found: invalid-user"
 }
-```
 
 ---
 
 ## Technology Stack
 
 - Java 17
-- Spring Boot
+- Spring Boot 3
+- Spring Web
+- Spring RestClient
+- Spring Validation
+- Spring Actuator
+- Spring Cache
 - Gradle
 - JUnit 5
 - Mockito
@@ -110,138 +116,147 @@ Example error response:
 
 ## Running the Application
 
-The application can be run directly through IntelliJ IDEA.
+### IntelliJ IDEA
 
-### IntelliJ Setup
+Run the Spring Boot application using:
 
-Create a Spring Boot run configuration targeting:
+GithubInsightsApiApplication.java
 
-```text
-BranchGithubApiApplication.java
-```
+### Gradle
 
-Then start the application.
+Windows:
 
-### Build with Gradle
+./gradlew.bat clean build
 
-A Gradle build configuration can be used to clean and build the project.
+macOS/Linux:
 
-```bash
 ./gradlew clean build
-```
+
+Then start the application using IntelliJ or Gradle.
 
 ---
 
-## Running and Testing the API
+## Using the API
 
-Once the application is running locally, the API can be tested using Postman, a browser, or curl.
+Once the application is running locally:
 
-### Endpoint
-
-```text
 GET /api/v1/github/{username}
-```
 
 Example:
 
-```text
-http://localhost:8080/api/v1/github/octocat
-```
+GET /api/v1/github/octocat
 
-### Testing with Postman
+The API can be called using Postman, curl, a browser, or another HTTP client.
 
-Create a GET request using:
+No authentication is currently required when calling the local API.
 
-```text
-http://localhost:8080/api/v1/github/octocat
-```
-
-No request headers or authentication are required when calling the local API.
-
-Internally, the application automatically attaches the required GitHub API headers when making outbound requests to GitHub.
+The application handles the required GitHub API headers when communicating with GitHub.
 
 ---
 
 ## Example Successful Response
 
-```json
 {
-  "user_name": "octocat",
-  "display_name": "The Octocat",
-  "avatar": "https://avatars.githubusercontent.com/u/583231?v=4",
-  "geo_location": "San Francisco",
-  "email": null,
-  "url": "https://api.github.com/users/octocat",
-  "created_at": "Tue, 25 Jan 2011 18:44:36 GMT",
-  "repos": [
-    {
-      "name": "Hello-World",
-      "url": "https://api.github.com/repos/octocat/Hello-World"
-    }
-  ]
+"user_name": "octocat",
+"display_name": "The Octocat",
+"avatar": "https://avatars.githubusercontent.com/u/583231?v=4",
+"geo_location": "San Francisco",
+"email": null,
+"url": "https://api.github.com/users/octocat",
+"created_at": "Tue, 25 Jan 2011 18:44:36 GMT",
+"repos": [
+{
+"name": "Hello-World",
+"url": "https://api.github.com/repos/octocat/Hello-World"
 }
-```
+]
+}
 
 ---
 
 ## Example Error Response
 
-If the GitHub user does not exist:
+If the requested GitHub user does not exist:
 
-```json
 {
-  "message": "User not found: invalid-user"
+"message": "User not found: invalid-user"
 }
-```
 
 ---
 
 ## Testing Strategy
 
-Unit and integration-style tests were created to validate each application layer.
+The application contains tests across the primary application layers.
 
-### Mapper Test
+### Mapper Tests
 
-Validates DTO transformation and response formatting.
+Validate DTO transformation and response formatting.
 
-```text
 GithubMapperTest
-```
 
-### Service Test
+### Service Tests
 
-Validates service orchestration and verifies interactions with dependencies using Mockito.
+Validate service orchestration and dependency interactions using Mockito.
 
-```text
 GithubUserServiceTest
-```
 
-### Controller Test
+### Controller Tests
 
-Validates endpoint behavior, HTTP status codes, JSON serialization, and service delegation using MockMvc.
+Validate:
 
-```text
+- Endpoint behavior
+- HTTP status codes
+- JSON serialization
+- Service delegation
+
+using Spring MockMvc.
+
 GithubUserControllerTest
-```
+
+The testing strategy will continue to expand as additional production capabilities are introduced.
 
 ---
 
-## Future Improvements
+## Engineering Goals
 
-Possible improvements if expanding the application further:
+The project is being developed as a production-style Spring Boot service rather than simply an API integration example.
 
-- Response caching for repeated GitHub lookups
-- API rate limit handling
-- Retry logic for transient GitHub API failures
-- Additional integration testing
+The primary engineering goals are:
 
-Caching was intentionally not implemented in order to keep the solution aligned with the scope of the assignment.
+- Clear separation of responsibilities
+- Maintainable application architecture
+- Testable components
+- Resilient external API communication
+- Consistent error handling
+- Production observability
+- Automated build and testing
+- Containerized deployment
+- Clear architectural documentation
+
+---
+
+## Planned Enhancements
+
+The next phases of the project will introduce additional production-oriented capabilities, including:
+
+- Response caching
+- GitHub API rate-limit handling
+- Retry and resilience strategies for transient failures
+- Improved integration testing
+- Docker containerization
+- CI/CD pipeline
+- Enhanced health checks and observability
+- Structured logging
+- API documentation
+- Security considerations
+- Architecture documentation
+
+Additional capabilities will be introduced where they provide a practical architectural benefit rather than simply adding technologies to the project.
 
 ---
 
 ## Author
 
-Developed by **Daniel Stryjewski**.
+Developed by Daniel Stryjewski.
 
-The goal of this project was to create a simple and maintainable API solution while following clean architecture principles and keeping the implementation aligned with the scope of the assignment.
-GitHub: https://github.com/dstryje
+This project demonstrates my approach to designing and building maintainable enterprise Java applications, including API design, integration architecture, testing, resilience, and production-readiness.
