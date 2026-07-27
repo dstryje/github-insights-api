@@ -1,4 +1,4 @@
-# GitHub Insights API
+[# GitHub Insights API
 
 A Spring Boot REST API that retrieves public GitHub user profile information and associated repositories and returns a consolidated, structured response.
 
@@ -259,4 +259,4 @@ Additional capabilities will be introduced where they provide a practical archit
 
 Developed by Daniel Stryjewski.
 
-This project demonstrates my approach to designing and building maintainable enterprise Java applications, including API design, integration architecture, testing, resilience, and production-readiness.
+This project demonstrates my approach to designing and building maintainable enterprise Java applications, including API design, integration architecture, testing, resilience, and production-readiness.](https://github.com/dstryje/github-insights-api/wiki)
