@@ -6,8 +6,7 @@ plugins {
 
 group = 'com.stryjewski'
 version = '0.0.1-SNAPSHOT'
-description = 'branch-github-api'
-
+description = 'github-insights-api'
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
